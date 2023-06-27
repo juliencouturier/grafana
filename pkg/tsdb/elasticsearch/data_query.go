@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strconv"
 	"time"
+	"strings"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 
@@ -140,7 +141,11 @@ func addDateHistogramAgg(aggBuilder es.AggBuilder, bucketAgg *BucketAgg, timeFro
 		field = timeField
 	}
 	aggBuilder.DateHistogram(bucketAgg.ID, field, func(a *es.DateHistogramAgg, b es.AggBuilder) {
-		a.FixedInterval = bucketAgg.Settings.Get("interval").MustString("auto")
+		var interval string = bucketAgg.Settings.Get("interval").MustString("auto")
+		if strings.HasSuffix(interval, "w") || strings.HasSuffix(interval, "M") || strings.HasSuffix(interval, "y") {
+			a.CalendarInterval = interval
+		} else {
+			a.FixedInterval = interval
 		a.MinDocCount = bucketAgg.Settings.Get("min_doc_count").MustInt(0)
 		a.ExtendedBounds = &es.ExtendedBounds{Min: timeFrom, Max: timeTo}
 		a.Format = bucketAgg.Settings.Get("format").MustString(es.DateFormatEpochMS)

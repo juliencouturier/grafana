@@ -108,6 +108,10 @@ export class ElasticQueryBuilder {
     }
 
     const interval = settings.interval === 'auto' ? '${__interval_ms}ms' : settings.interval;
+    if (interval.endsWith('w') || interval.endsWith('M') || interval.endsWith('y'))
+      esAgg.calendar_interval = interval;
+    else
+      esAgg.fixed_interval = interval;
 
     esAgg.fixed_interval = interval;
 
