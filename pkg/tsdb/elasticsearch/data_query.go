@@ -140,7 +140,12 @@ func addDateHistogramAgg(aggBuilder es.AggBuilder, bucketAgg *BucketAgg, timeFro
 		field = timeField
 	}
 	aggBuilder.DateHistogram(bucketAgg.ID, field, func(a *es.DateHistogramAgg, b es.AggBuilder) {
-		a.FixedInterval = bucketAgg.Settings.Get("interval").MustString("auto")
+		interval = bucketAgg.Settings.Get("interval").MustString("auto")
+		if HasSuffix(interval, "d") || HasSuffix(interval, "w") || HasSuffix(interval, "M") || HasSuffix(interval, "y") {
+			a.CalendarInterval = interval
+		} else {
+			a.FixedInterval = interval
+		}
 		a.MinDocCount = bucketAgg.Settings.Get("min_doc_count").MustInt(0)
 		a.ExtendedBounds = &es.ExtendedBounds{Min: timeFrom, Max: timeTo}
 		a.Format = bucketAgg.Settings.Get("format").MustString(es.DateFormatEpochMS)
